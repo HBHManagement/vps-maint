@@ -36,7 +36,7 @@ case "${1:-status}" in
     say "kernel: $(uname -r)"
     say "disk: $(df -h / | awk 'NR==2{print $5" used, "$4" free"}')"
     say "ram: $(free -m | awk 'NR==2{printf "%sMB used of %sMB", $3, $2}')"
-    pend=$(apt-get -s upgrade 2>/dev/null | grep -c '^Inst' || true)
+    pend=$(sudo /usr/bin/apt-get -s upgrade 2>/dev/null | grep -c '^Inst' || true)
     say "updates pending: $pend"
     [ -f /var/run/reboot-required ] && say "reboot required: YES" || say "reboot required: no"
     say "---"
@@ -44,11 +44,11 @@ case "${1:-status}" in
   apt)
     say "=== $(date -Is) apt upgrade start ==="
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq
-    apt-get -y -o Dpkg::Options::=--force-confold upgrade
+    sudo /usr/bin/apt-get update -qq
+    sudo /usr/bin/apt-get -y -o Dpkg::Options::=--force-confold upgrade
     say "upgrade rc=$?"
-    apt-get -y -o Dpkg::Options::=--force-confold autoremove
-    pend=$(apt-get -s upgrade 2>/dev/null | grep -c '^Inst' || true)
+    sudo /usr/bin/apt-get -y -o Dpkg::Options::=--force-confold autoremove
+    pend=$(sudo /usr/bin/apt-get -s upgrade 2>/dev/null | grep -c '^Inst' || true)
     say "updates pending after: $pend"
     [ -f /var/run/reboot-required ] && say "reboot required: YES" || say "reboot required: no"
     say "---"
@@ -82,7 +82,7 @@ chmod 440 /etc/sudoers.d/hermes-maint
 visudo -cf /etc/sudoers.d/hermes-maint >/dev/null || { echo "sudoers ungueltig, Abbruch"; rm -f /etc/sudoers.d/hermes-maint; exit 1; }
 
 # ---------------------------------------------------------------- log
-touch "$LOG"; chmod 644 "$LOG"
+touch "$LOG"; chown root:hermes-maint "$LOG"; chmod 664 "$LOG"
 
 echo "OK. Donna hat jetzt engen Wartungs-Zugriff: status | apt (sudo nur apt-get)."
 echo "Test: ssh -i hermes-maint hermes-maint@188.245.92.13 status"
